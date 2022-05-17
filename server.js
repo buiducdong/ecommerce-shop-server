@@ -1,6 +1,6 @@
 import express from 'express';
 import products from './data/Products.js';
-import connectDatabase from './config/MongoDB.js';
+// import connectDatabase from './config/MongoDB.js';
 import dotenv from 'dotenv';
 import ImportData from './DataImport.js';
 import Product from './Models/ProductModel.js';
@@ -9,12 +9,21 @@ import ProductRoute from './Routes/ProductRoutes.js';
 import UserRouter from './Routes/UserRoutes.js';
 import OrderRoute from './Routes/OrderRoutes.js';
 import cors from 'cors';
-dotenv.config();
+import mongoose from 'mongoose';
+
 const port = process.env.PORT || 8000;
-connectDatabase();
+dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+mongoose
+  .connect(process.env.MONGO_URL, {
+    useUnifiedTopology: true,
+    useNewUrlParser: true,
+  })
+  .then(() => console.log('Database connected!'))
+  .catch((err) => console.log(err));
 
 // API
 app.use('/api/import', ImportData);
