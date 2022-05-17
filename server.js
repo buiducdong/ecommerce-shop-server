@@ -10,7 +10,7 @@ import UserRouter from './Routes/UserRoutes.js';
 import OrderRoute from './Routes/OrderRoutes.js';
 import cors from 'cors';
 dotenv.config();
-const PORT = process.env.PORT || 8000;
+const port = process.env.PORT || 8000;
 connectDatabase();
 const app = express();
 app.use(express.json());
@@ -33,6 +33,6 @@ app.get('/', (req, res) => {
   res.send('api is rungning...');
 });
 
-app.listen(PORT, () => {
-  console.log(`server running in host: \'http://localhost:${PORT}\'`);
+app.listen(port, () => {
+  console.log(`server running in host: \'http://localhost:${port}\'`);
 });
