@@ -1,7 +1,7 @@
 import express from 'express';
 import asyncHandler from 'express-async-handler';
 import Product from '../Models/ProductModel.js';
-import protect from '../Middleware/AuthMiddleware.js';
+import { admin, protect } from '../Middleware/AuthMiddleware.js';
 
 const ProductRoute = express.Router();
 
@@ -28,19 +28,93 @@ ProductRoute.get(
   })
 );
 
+// GET ALL PRODUCT OF ADMIN
+ProductRoute.get('/all', protect, admin, async (req, res) => {
+  try {
+    const products = await Product.find({}).sort({ _id: -1 });
+    res.json(products);
+  } catch (err) {
+    return res.status(400).json({ message: err });
+  }
+});
+
+// DELETE SINGLE PRODUCT ADMIN
+ProductRoute.delete('/:id', protect, admin, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (product) {
+      await product.remove();
+      res.json({ message: 'Product has been delete' });
+    } else {
+      res.status(404).json({ message: 'Product not found' });
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err });
+  }
+});
+
+// CREATE PRODUCT ADMIN
+ProductRoute.post('/:id', protect, admin, async (req, res) => {
+  try {
+    const { name, price, description, countInStock, image } = req.body;
+    const productExist = await Product.findOne({ name });
+    if (productExist) {
+      res.status(400).json({ message: 'Product name already exist' });
+    } else {
+      const product = new Product({
+        name,
+        price,
+        description,
+        countInStock,
+        image,
+        user: req.user._id,
+      });
+      if (product) {
+        const createProduct = await product.save();
+        res.status(201).json(createProduct);
+      } else {
+        res.status(404).json({ message: 'Invalid product data' });
+      }
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err });
+  }
+});
+
+// EDIT PRODUCT ADMIN
+ProductRoute.put('/:id', protect, admin, async (req, res) => {
+  try {
+    const { name, price, description, countInStock, image } = req.body;
+    const product = await Product.findById(req.params.id);
+    if (product) {
+      product.name = name || product.name;
+      product.price = price || product.price;
+      product.description = description || product.description;
+      product.countInStock = countInStock || product.countInStock;
+      product.image = image || product.image;
+      const updateProduct = await product.save();
+      res.json(updateProduct);
+    } else {
+      res.status(404).json({ message: ' product not found' });
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err });
+  }
+});
+
 // GET SINGLE PRODUCT
-ProductRoute.get(
-  '/:id',
-  asyncHandler(async (req, res) => {
+ProductRoute.get('/:id', async (req, res) => {
+  try {
     const product = await Product.findById(req.params.id);
     if (product) {
       res.json(product);
     } else {
-      res.status(404);
-      throw new Error('product not found');
+      res.status(404).json({ message: 'Product not found' });
     }
-  })
-);
+  } catch (err) {
+    return res.status(400).json({ message: err });
+  }
+});
 
 // PRODUCT REVIEW
 ProductRoute.post('/:id/review', protect, async (req, res) => {
