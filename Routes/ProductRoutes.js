@@ -54,7 +54,7 @@ ProductRoute.delete('/:id', protect, admin, async (req, res) => {
 });
 
 // CREATE PRODUCT ADMIN
-ProductRoute.post('/:id', protect, admin, async (req, res) => {
+ProductRoute.post('/', protect, admin, async (req, res) => {
   try {
     const { name, price, description, countInStock, image } = req.body;
     const productExist = await Product.findOne({ name });

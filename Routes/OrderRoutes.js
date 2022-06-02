@@ -1,7 +1,7 @@
 import express from 'express';
 import asyncHandler from 'express-async-handler';
 import Product from '../Models/ProductModel.js';
-import { protect } from '../Middleware/AuthMiddleware.js';
+import { protect, admin } from '../Middleware/AuthMiddleware.js';
 import Order from '../Models/OrderModel.js';
 
 const OrderRoute = express.Router();
@@ -66,6 +66,23 @@ OrderRoute.get('/:id', protect, async (req, res) => {
   }
 });
 
+//GET ALL ORDER BY ADMIN
+OrderRoute.get('/', protect, admin, async (req, res) => {
+  try {
+    const order = await Order.find({})
+      .sort({ _id: -1 })
+      .populate('user', 'id name email');
+
+    if (order) {
+      return res.status(200).json(order);
+    } else {
+      console.log('no order');
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+});
+
 // ORDER IS PAID
 OrderRoute.put('/:id/pay', protect, async (req, res) => {
   try {
@@ -80,6 +97,24 @@ OrderRoute.put('/:id/pay', protect, async (req, res) => {
         update_item: req.body.update_item,
         email_address: req.body.email_address,
       };
+      const updateOrder = await order.save();
+      return res.status(200).json(updateOrder);
+    } else {
+      console.log('no order');
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+});
+
+// ORDER DELIVERED
+OrderRoute.put('/:id/delivered', protect, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+      order.isDelivered = true;
+      order.deliveredAt = Date.now();
       const updateOrder = await order.save();
       return res.status(200).json(updateOrder);
     } else {
