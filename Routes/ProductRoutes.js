@@ -5,7 +5,7 @@ import { admin, protect } from '../Middleware/AuthMiddleware.js';
 
 const ProductRoute = express.Router();
 
-// GET ALL PRODUCTS
+// GET ALL PRODUCTS FOLLOW PAGE
 ProductRoute.get(
   '/',
   asyncHandler(async (req, res) => {
@@ -27,6 +27,24 @@ ProductRoute.get(
     res.json({ products, page, pages: Math.ceil(count / pageSize) });
   })
 );
+
+// GET ALL PRODUCTS
+ProductRoute.get('/all', async (req, res) => {
+  try {
+    const keyword = req.query.keyword
+      ? {
+          name: {
+            $regex: req.query.keyword,
+            $options: 'i',
+          },
+        }
+      : {};
+    const products = await Product.find({ ...keyword }).sort({ _id: -1 });
+    res.json(products);
+  } catch (err) {
+    res.status(400).json({ message: err });
+  }
+});
 
 // GET ALL PRODUCT OF ADMIN
 ProductRoute.get('/all', protect, admin, async (req, res) => {
