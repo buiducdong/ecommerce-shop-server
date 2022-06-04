@@ -32,6 +32,25 @@ OrderRoute.post('/', protect, async (req, res) => {
       });
 
       const createOrder = await order.save();
+
+      const productsOrder = await Promise.all(
+        orderItems.map(async (order) => {
+          const pr = await Product.findById(order.productId);
+          return await pr.updateOne({
+            $set: { countInStock: pr.countInStock - order.qty },
+          });
+        })
+      );
+      //console.log(productsOrder);
+      // const updateProductsOrder = await Promise.all(
+      //   productsOrder.map((productOrder) => {
+      //     return productOrder.updateOne({
+      //       $set: { countInStock: productOrder.countInStock - productOrder.order },
+      //     });
+      //   })
+      // );
+      // console.log(updateProductsOrder);
+
       return res.status(200).json(createOrder);
     } else {
       console.log('no item in cart');
